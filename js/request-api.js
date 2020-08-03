@@ -13,22 +13,24 @@ async function searchAnime() {
     const response = await urlRequest.json();
     console.log(response);
     console.log(response.results);
-    response.results.forEach(res => {
-        contenido.innerHTML += `
-        <div class="row row-cols-1 row-cols-md-2">
-            <div class="col mb-4">
-                <div class="card">
-                <img src="${res.image_url}" class="card-img-top" alt="...">
-                    <div class="card-body">
-                        <h5 class="card-title">${res.title}</h5>
-                        <p class="card-text">${res.synopsis}</p>
+    if( search != null) {
+        response.results.forEach(res => {
+            contenido.innerHTML += `
+            <div class="row row-cols-1 row-cols-md-2">
+                <div class="col mb-4">
+                    <div class="card">
+                    <img src="${res.image_url}" class="card-img-top" alt="...">
+                        <div class="card-body">
+                            <h5 class="card-title">${res.title}</h5>
+                            <p class="card-text">${res.synopsis}</p>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-        `
-    });
-    contenido.innerHTML
+            `
+        });
+        contenido.innerHTML
+    }  
 
 }
 
@@ -41,25 +43,28 @@ async function searchManga() {
     const response = await urlRequest.json();
     console.log(response);
     console.log(response.results);
-    response.results.forEach(res => {
-        contenido.innerHTML += `
-        <div class="row row-cols-1 row-cols-md-2">
-            <div class="col mb-4">
-                <div class="card">
-                <img src="${res.image_url}" class="card-img-top" alt="...">
-                    <div class="card-body">
-                        <h5 class="card-title">${res.title}</h5>
-                        <p class="card-text">${res.synopsis}</p>
+    if( search != null) {
+        response.results.forEach(res => {
+            contenido.innerHTML += `
+            <div class="row row-cols-1 row-cols-md-2">
+                <div class="col mb-4">
+                    <div class="card">
+                    <img src="${res.image_url}" class="card-img-top" alt="...">
+                        <div class="card-body">
+                            <h5 class="card-title">${res.title}</h5>
+                            <p class="card-text">${res.synopsis}</p>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-        `
-    });
-    contenido.innerHTML
+            `
+        });
+        contenido.innerHTML
+    }
+    
 }
 
-function almacenarId(){
+function almacenarId() {
     let search = document.getElementById('search');
     sessionStorage.setItem('id',search.value);
 }
