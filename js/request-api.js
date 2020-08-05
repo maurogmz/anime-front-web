@@ -65,9 +65,6 @@ async function searchManga() {
 }
 
 function almacenarId() {
-    let content = document.querySelector('#main_carousel');
-    $("#main_carousel").empty();
-    content.innerHTML = ``;
     let search = document.getElementById('search');
     sessionStorage.setItem('id',search.value);
 }
