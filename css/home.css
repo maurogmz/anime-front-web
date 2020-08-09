@@ -1,3 +1,9 @@
+@import url("https://fonts.googleapis.com/css?family=Nunito:400,700&display=swap");
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 body {
     background-color: currentColor;
 }
@@ -19,7 +25,7 @@ body {
     margin-top: 30px;
     color: white;
     padding: 10px;
-    border-radius: 15px 15px 0px 0px;
+    border-radius: 5px 5px 0px 0px;
 }
 
 .textbox-anime {
@@ -31,9 +37,73 @@ body {
 }
 
 #anime_content {
-    background-color: #00C851;
+    padding-top: 5px;
+    background-color: #343a40;
 }
 
 #manga_content {
     background-color: #4285F4;
+    padding-top: 5px;
+    background-color: #343a40;
+}
+
+/***     Cards     ***/
+.card--section {
+    display: flex;
+    flex-direction: row;
+    width: 15rem auto;
+    height: 10rem;
+    background: currentColor;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
+    border-radius: 0px;
+    border: currentColor;
+    margin: auto;
+    overflow: hidden;
+    min-width: 15rem;
+    margin-top: 15px;
+}
+
+.card--avatar {
+    width: 30%;
+    min-width: 30%;
+    height: 10rem;
+    object-fit: cover;
+}
+
+.card--descripton {
+    width: 70%;
+    height: 10rem;
+    left: 0;
+}
+
+.card--title {
+    font-weight: 700;
+    text-transform: capitalize;
+    font-size: 1.1rem;
+    margin-top: 0.5rem;
+    margin-left: 1rem;
+    margin-right: 0.5rem;
+}
+
+.card-title-anime {
+    color: #00C851;
+}
+
+.card-title-manga {
+    color: #4285F4;
+}
+
+.card--synopsis {
+    margin-top: 0.5rem;
+    margin-left: 1rem;
+    margin-right: 0.5rem;
+
+}
+
+.card-synopsis-anime {
+    color: #6db33f;
+}
+
+.card-synopsis-manga {
+    color: #1f98ff;
 }

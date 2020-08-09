@@ -16,16 +16,12 @@ async function searchAnime() {
     if( search != null) {
         response.results.forEach(res => {
             contenido.innerHTML += `
-            <div class="row row-cols-1 row-cols-md-2">
-                <div class="col mb-4">
-                    <div class="card">
-                    <img src="${res.image_url}" class="card-img-top" alt="...">
-                        <div class="card-body">
-                            <h5 class="card-title">${res.title}</h5>
-                            <p class="card-text">${res.synopsis}</p>
-                        </div>
-                    </div>
-                </div>
+            <div class="card--section">
+                <img class="card--avatar" src=${res.image_url} />
+                <div class="card--desription">
+                    <h1 class="card--title card-title-anime">${res.title}</h1>
+                    <p class="card--synopsis card-synopsis-anime">${res.synopsis}</p>
+                </div>   
             </div>
             `
         });
@@ -46,16 +42,12 @@ async function searchManga() {
     if( search != null) {
         response.results.forEach(res => {
             contenido.innerHTML += `
-            <div class="row row-cols-1 row-cols-md-2">
-                <div class="col mb-4">
-                    <div class="card">
-                    <img src="${res.image_url}" class="card-img-top" alt="...">
-                        <div class="card-body">
-                            <h5 class="card-title">${res.title}</h5>
-                            <p class="card-text">${res.synopsis}</p>
-                        </div>
-                    </div>
-                </div>
+            <div class="card--section">
+                <img class="card--avatar" src=${res.image_url} />
+                <div class="card--desription">
+                    <h1 class="card--title card-title-manga">${res.title}</h1>
+                    <p class="card--synopsis card-synopsis-manga">${res.synopsis}</p>
+                </div>   
             </div>
             `
         });
