@@ -1,0 +1,39 @@
+body {
+    background-color: currentColor;
+}
+
+/***     Navigation      ***/
+.navbar {
+    position: fixed;
+    z-index: 1;
+    width: 100%;
+    top: 0;
+}
+
+/***     Content     ***/
+#general_content {
+    margin-top: 50px;
+}
+
+.textbox-section {
+    margin-top: 30px;
+    color: white;
+    padding: 10px;
+    border-radius: 15px 15px 0px 0px;
+}
+
+.textbox-anime {
+    background-color: #007E33;
+}
+
+.textbox-manga {
+    background-color: #0d47a1;
+}
+
+#anime_content {
+    background-color: #00C851;
+}
+
+#manga_content {
+    background-color: #4285F4;
+}
