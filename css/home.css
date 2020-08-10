@@ -42,7 +42,6 @@ body {
 }
 
 #manga_content {
-    background-color: #4285F4;
     padding-top: 5px;
     background-color: #343a40;
 }
@@ -70,8 +69,8 @@ body {
     object-fit: cover;
 }
 
-.card--descripton {
-    width: 70%;
+.card--description {
+    width: 50%;
     height: 10rem;
     left: 0;
 }
@@ -93,17 +92,36 @@ body {
     color: #4285F4;
 }
 
-.card--synopsis {
+.card--enums {
     margin-top: 0.5rem;
     margin-left: 1rem;
     margin-right: 0.5rem;
 
 }
 
-.card-synopsis-anime {
+.card-enums-anime {
     color: #6db33f;
 }
 
-.card-synopsis-manga {
+.card-enums-manga {
     color: #1f98ff;
+}
+
+.card--score {
+    font-weight: 700;
+    padding-top: 0.5rem;
+    margin-bottom: 7.0rem;
+    font-size: 1.2rem;
+    width: 20%;
+    text-align: center;
+    color: white;
+    border-bottom-left-radius: 20px ;
+}
+
+.card-score-anime {
+    background-color:#00C851;
+}
+
+.card-score-manga {
+    background-color:#4285F4;
 }

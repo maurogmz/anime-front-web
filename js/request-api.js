@@ -15,12 +15,23 @@ async function searchAnime() {
     console.log(response.results);
     if( search != null) {
         response.results.forEach(res => {
+            var datejson = new Date(res.start_date);
+            var options = {year: 'numeric', month: '2-digit', day: '2-digit' };
             contenido.innerHTML += `
             <div class="card--section">
                 <img class="card--avatar" src=${res.image_url} />
-                <div class="card--desription">
+                <div class="card--description">
                     <h1 class="card--title card-title-anime">${res.title}</h1>
-                    <p class="card--synopsis card-synopsis-anime">${res.synopsis}</p>
+                    <div class="card--enums card-enums-anime">
+                        ${res.type} (${res.episodes} eps)
+                        <br>
+                        Rated: ${res.rated}
+                        <br>
+                        Date of Issue: ${datejson.toLocaleDateString("es-MX", options)}
+                    </div>
+                </div>
+                <div class="card--score card-score-anime">
+                    ${res.score}
                 </div>   
             </div>
             `
@@ -41,12 +52,23 @@ async function searchManga() {
     console.log(response.results);
     if( search != null) {
         response.results.forEach(res => {
+            var datejson = new Date(res.start_date);
+            var options = {year: 'numeric', month: '2-digit', day: '2-digit' };
             contenido.innerHTML += `
             <div class="card--section">
                 <img class="card--avatar" src=${res.image_url} />
-                <div class="card--desription">
+                <div class="card--description">
                     <h1 class="card--title card-title-manga">${res.title}</h1>
-                    <p class="card--synopsis card-synopsis-manga">${res.synopsis}</p>
+                    <div class="card--enums card-enums-manga">
+                        ${res.type} (${res.volumes} vols)
+                        <br>
+                        Chapters: ${res.chapters}
+                        <br>
+                        Date of Issue: ${datejson.toLocaleDateString("es-MX", options)}
+                    </div>
+                </div>
+                <div class="card--score card-score-manga">
+                    ${res.score}
                 </div>   
             </div>
             `
