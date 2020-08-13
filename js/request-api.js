@@ -1,6 +1,7 @@
 $(document).ready(function() {
-    searchAnime();
-    searchManga();
+    setTimeout(searchAnime(), 4000);
+    setTimeout(searchManga(), 4000);
+    
 });
 
 async function searchAnime() {
@@ -30,14 +31,18 @@ async function searchAnime() {
                         Date of Issue: ${datejson.toLocaleDateString("es-MX", options)}
                     </div>
                 </div>
-                <div class="card--score card-score-anime">
-                    ${res.score}
-                </div>   
+                <div class="card--right">
+                    <div class="card--score card-score-anime">
+                        ${res.score}
+                    </div>
+                    <a class="card--link" href="detail_anime.html" role="button">See More</a>
+                </div>
             </div>
             `
         });
         contenido.innerHTML
-    }  
+    }
+      
 
 }
 
@@ -67,9 +72,12 @@ async function searchManga() {
                         Date of Issue: ${datejson.toLocaleDateString("es-MX", options)}
                     </div>
                 </div>
-                <div class="card--score card-score-manga">
-                    ${res.score}
-                </div>   
+                <div class="card--right">
+                    <div class="card--score card-score-manga">
+                        ${res.score}
+                    </div>
+                    <a class="btn card--link" href="#" role="button">See More</a>
+                </div>  
             </div>
             `
         });
