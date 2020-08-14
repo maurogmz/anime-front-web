@@ -1,0 +1,15 @@
+#content_details {
+    padding-top: 50px;
+}
+
+#content_left {
+    background-color: #007E33;
+}
+
+#content_right {
+    background-color: red;
+}
+
+footer {
+    background-color: #343a40;
+}

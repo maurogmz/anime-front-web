@@ -13,13 +13,13 @@ function almacenarId() {
     sessionStorage.setItem('id',search.value);
 }
 
-async function getIdForDetails(malId, malObject) {
-    console.log("The ID is: " + malId);
-    sessionStorage.setItem('malId',malId);
-    //sessionStorage.setItem('malObject', JSON.stringify(malObject));
-    //var myJSON = JSON.stringify(malObject);
-    sessionStorage.setItem('malObject', malObject);
-    console.log(malObject);
+async function getIdForDetails(malId, malTitle, malImage, malSynopsis, malScore) {
+    var text = '{"mal_id": "'+malId+'", "title": "'+malTitle+'", "image_url": "'+malImage+'", "synopsis": "'+malSynopsis+'", "score": "'+malScore+'"}' 
+    //console.log(JSON.parse(text));
+    var obj = JSON.parse(text);
+    var arrayElems = [malId, malTitle, malImage, malSynopsis, malScore];
+    console.log(malId);
+    sessionStorage.setItem('malObject', JSON.stringify(obj));
     
 }
 
@@ -35,8 +35,9 @@ async function searchAnime() {
     console.log(response.results);
     if( search != null) {
         response.results.forEach(res => {
-            let arrayElementsDetail = [res.title, res.image_url, res.synopsis, res.score];
+            //let arrayElementsDetail = [{"a":res.mal_id,"b":res.title, "c": res.image_url, "d": res.synopsis, "e": res.score}];
             var datejson = new Date(res.start_date);
+            console.log(res.mal_id);
             var options = {year: 'numeric', month: '2-digit', day: '2-digit' };
             contenido.innerHTML += `
             <div class="card--section">
@@ -55,7 +56,7 @@ async function searchAnime() {
                     <div class="card--score card-score-anime">
                         ${res.score}
                     </div>
-                    <a class="card--link" role="button" onclick="getIdForDetails('${res.mal_id}','${arrayElementsDetail}')" href="detail_anime.html">See More</a>
+                    <a class="card--link" role="button" onclick="getIdForDetails('${res.mal_id}','${res.title}','${res.image_url}','${res.synopsis}','${res.score}')" href="#">See More</a>
                 </div>
             </div>
             `

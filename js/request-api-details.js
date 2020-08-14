@@ -3,15 +3,12 @@ $(document).ready(function() {
 });
 
 function detailsDocument() {
-    
-    //var malDetails = JSON.parse(sessionStorage.getItem('malObject'));
-    var malDetails = sessionStorage.getItem('malObject');
-    console.log(malDetails);
-    /*malDetails.forEach(res => {
-    });*/
+    document.getElementById("image_detail").src = "";
     let nameTitle = document.querySelector('#name_title');
     $("#name_title").empty();
-    nameTitle.innerHTML += `${malDetails[0]}`;
-
-
+    var malDetails = JSON.parse(sessionStorage.getItem('malObject'));
+    //var malDetails = sessionStorage.getItem('malObject');
+    console.log(malDetails);
+    document.getElementById("image_detail").src = malDetails.image_url; 
+    nameTitle.innerHTML += `${malDetails.title}`;
 }
