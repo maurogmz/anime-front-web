@@ -1,8 +1,27 @@
 $(document).ready(function() {
-    setTimeout(searchAnime(), 4000);
-    setTimeout(searchManga(), 4000);
-    
+    searchAnime()
+    searchManga()
 });
+
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function almacenarId() {
+    let search = document.getElementById('search');
+    sessionStorage.setItem('id',search.value);
+}
+
+async function getIdForDetails(malId, malObject) {
+    console.log("The ID is: " + malId);
+    sessionStorage.setItem('malId',malId);
+    //sessionStorage.setItem('malObject', JSON.stringify(malObject));
+    //var myJSON = JSON.stringify(malObject);
+    sessionStorage.setItem('malObject', malObject);
+    console.log(malObject);
+    
+}
 
 async function searchAnime() {
     
@@ -16,6 +35,7 @@ async function searchAnime() {
     console.log(response.results);
     if( search != null) {
         response.results.forEach(res => {
+            let arrayElementsDetail = [res.title, res.image_url, res.synopsis, res.score];
             var datejson = new Date(res.start_date);
             var options = {year: 'numeric', month: '2-digit', day: '2-digit' };
             contenido.innerHTML += `
@@ -35,7 +55,7 @@ async function searchAnime() {
                     <div class="card--score card-score-anime">
                         ${res.score}
                     </div>
-                    <a class="card--link" href="detail_anime.html" role="button">See More</a>
+                    <a class="card--link" role="button" onclick="getIdForDetails('${res.mal_id}','${arrayElementsDetail}')" href="detail_anime.html">See More</a>
                 </div>
             </div>
             `
@@ -86,7 +106,4 @@ async function searchManga() {
     
 }
 
-function almacenarId() {
-    let search = document.getElementById('search');
-    sessionStorage.setItem('id',search.value);
-}
+
