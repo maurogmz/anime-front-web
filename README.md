@@ -1,5 +1,5 @@
 
-# ?? Anime & Manga Explorer v1.0
+# 🎌 Anime & Manga Explorer v1.0
 
 <div align="center">
 
@@ -18,23 +18,23 @@
 A simple **prototype project (v1.0)** built with **JavaScript, HTML, and CSS** to test the [Jikan API v4](https://docs.api.jikan.moe/).  
 It allows searching for **anime** and **manga** and displays basic details such as images, titles, episodes/volumes, publishing date, and scores.  
 
-?? **Disclaimer:** This is an early prototype ? Many improvements are still pending.  
+⚠️ **Disclaimer:** This is an early prototype ? Many improvements are still pending.  
 
 ---
 
-## ? Features
-- ?? Search for **anime** and **manga** using the Jikan API.  
-- ?? Display results in styled **cards**, including:
-  - ?? Official image  
-  - ??? Title  
-  - ?? Type (TV, Manga, OVA, etc.)  
-  - ?? Release date (?)  
-  - ? MyAnimeList score (?)  
+## ✨ Features
+- 🔎 Search for **anime** and **manga** using the Jikan API.  
+- 🎴 Display results in styled **cards**, including:
+  - 📷 Official image  
+  - 🏷️ Title  
+  - 🎬 Type (TV, Manga, OVA, etc.)  
+  - 📅 Release date (?)  
+  - ⭐ MyAnimeList score (?)  
 
 ---
 
 
-## ??? Tech Stack
+## 🛠️ Tech Stack
 
 <div align="center">
 
@@ -50,14 +50,14 @@ It allows searching for **anime** and **manga** and displays basic details such 
 ---
 
 
-## ?? API Reference
+## 🔗 API Reference
 
 This project uses the [Jikan API v4](https://docs.api.jikan.moe/), which provides:
 
-- ?? **Anime Data**: Titles, descriptions, ratings, episodes, and more
-- ?? **Manga Data**: Chapters, volumes, publication info, and more
-- ?? **Character Info**: Voice actors, descriptions, and relationships
-- ?? **Studio Info**: Animation studios and producers
+- 📺 **Anime Data**: Titles, descriptions, ratings, episodes, and more
+- 📚 **Manga Data**: Chapters, volumes, publication info, and more
+- 🎭 **Character Info**: Voice actors, descriptions, and relationships
+- 🏢 **Studio Info**: Animation studios and producers
 
 ### Example API Call
 ```javascript
@@ -68,52 +68,49 @@ const data = await response.json();
 
 ---
 
-## ?? Getting Started
+## 🚀 Getting Started
 1. Clone or download the repository.  
 2. Open `index.html` in your favorite browser (Chrome, Firefox, Edge).  
 3. Enter a search term (e.g., `Mob 100`).  
-4. Explore anime and manga results instantly. ??  
+4. Explore anime and manga results instantly. 🌟  
 
 ---
 
-## ?? Roadmap / To-Do
-- ?? Enhance UI/UX with a CSS framework (Tailwind / Bootstrap).  
-- ?? Add a detailed view for each anime/manga.  
-- ?? Implement pagination for results.  
-- ?? Better error handling (e.g., empty searches, no results).  
-- ??? Store recent searches.  
-- ? Future migration to a modern JavaScript framework (React / Vue).  
+## 📌 Roadmap / To-Do
+- 🎨 Enhance UI/UX with a CSS framework (Tailwind / Bootstrap).  
+- 📑 Add a detailed view for each anime/manga.  
+- 🔄 Implement pagination for results.  
+- 🚫 Better error handling (e.g., empty searches, no results).  
+- 🕹️ Store recent searches.  
+- ⚡ Future migration to a modern JavaScript framework (React / Vue).  
 
 ---
 
-## ?? Version
-- **v1.0** ? Initial working prototype with basic search features.  
+## 📝 Version
+- **v1.0** → Initial working prototype with basic search features.  
 
 ---
 
-## ?? License
+## 📜 License
 This project is open for **learning and experimentation**.  
 Feel free to use, modify, and improve it.  
 
 ---
-## ?? Contact & Support
+## 📞 Contact & Support
 
 <div align="center">
 
-**Developed with ?? by [Mauro G�mez](https://github.com/maurogmz)**
+**Developed with ❤️ by [Mauro Gómez](https://github.com/maurogmz)**
 
 [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/maurogmz)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/maurogmz)
 [![Instagram](https://img.shields.io/badge/Instagram-E4405F?style=for-the-badge&logo=instagram&logoColor=white)](https://www.instagram.com/maurogomez_mfg)
 
 
-*If you found this project helpful, please consider giving it a ?!*
+*If you found this project helpful, please consider giving it a ⭐*
 
 </div>
 
----
-
-### ?? *?The journey has just begun??* ??
 
 <div align="center" style="background-color:lightblue">
 	<h1>2020 v1</h1>
