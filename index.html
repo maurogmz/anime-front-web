@@ -1,14 +1,24 @@
 <!doctype html>
-<html lang="es">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#14110f" />
+    <meta
+      name="description"
+      content="Browse and search anime and manga: this season's airing shows, all-time top titles, details and recommendations. Powered by the AniList API."
+    />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://graphql.anilist.co" crossorigin />
+    <link rel="preconnect" href="https://s4.anilist.co" />
     <title>Anime Hub</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
   </head>
   <body>
-    <div id="app"></div>
-    <script type="module" src="/src/app.js"></script>
+    <div id="app">
+      <noscript>Anime Hub needs JavaScript to load titles from the AniList API.</noscript>
+    </div>
+    <script type="module" src="/src/main.js"></script>
   </body>
 </html>
