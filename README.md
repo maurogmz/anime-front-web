@@ -88,6 +88,7 @@ const data = await response.json();
 
 ## 📝 Version
 - **v1.0** → Initial working prototype with basic search features.  
+- **2026-10-31** → Migrated to Vite with a modular structure and GitHub Pages deploy.  
 
 ---
 
