@@ -1,16 +1,24 @@
-import { createElement } from "../utils/helpers.js";
+import { h } from "../lib/dom.js";
+import { icon } from "../lib/icons.js";
+import { formatNumber } from "../lib/format.js";
 
-export function Pagination({ page=1, last=1, onChange }) {
-  const cont = createElement("div",{class:"pagination"});
-  const prev = createElement("button",{class:"pill"}, ["◀"]);
-  const next = createElement("button",{class:"pill"}, ["▶"]);
+export function Pagination({ page, lastPage, onChange }) {
+  if (lastPage <= 1) return h("div");
 
-  prev.disabled = page <= 1;
-  next.disabled = page >= last;
+  const step = (target, label, name) =>
+    h(
+      "button",
+      { type: "button", class: "button button--ghost", disabled: target < 1 || target > lastPage, onClick: () => onChange(target) },
+      name === "chevronLeft" && icon(name, { size: 18 }),
+      label,
+      name === "chevronRight" && icon(name, { size: 18 }),
+    );
 
-  prev.addEventListener("click", () => onChange(Math.max(1, page-1)));
-  next.addEventListener("click", () => onChange(Math.min(last, page+1)));
-
-  cont.append(prev, createElement("div", {class:"muted"}, [`Página ${page} / ${last}`]), next);
-  return cont;
+  return h(
+    "nav",
+    { class: "pagination", "aria-label": "Pagination" },
+    step(page - 1, "Previous", "chevronLeft"),
+    h("p", { class: "pagination__status", "aria-live": "polite" }, `Page ${formatNumber(page)} of ${formatNumber(lastPage)}`),
+    step(page + 1, "Next", "chevronRight"),
+  );
 }

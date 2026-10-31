@@ -1,0 +1,54 @@
+/* Editorial dark: warm near-black like a cinema at lights-down.
+   Posters carry the color; the interface uses one cinnabar accent and one amber for scores. */
+:root {
+  color-scheme: dark;
+
+  --bg: #14110f;
+  --surface: #1c1815;
+  --surface-2: #26201c;
+  --line: rgb(240 228 214 / 0.11);
+  --line-strong: rgb(240 228 214 / 0.22);
+
+  --text: #f2eae0;
+  --text-2: #c2b6a8;
+  --text-3: #9a8e80;
+
+  --accent: #f0643f;
+  --accent-hover: #ff7a56;
+  --accent-ink: #1d0c06;
+  --gold: #e9b949;
+
+  --font-display: "Fraunces Variable", "Iowan Old Style", Georgia, serif;
+  --font-body: "Instrument Sans Variable", "Segoe UI", system-ui, sans-serif;
+
+  --step--1: 0.8125rem;
+  --step-0: 1rem;
+  --step-1: 1.1875rem;
+  --step-2: 1.5rem;
+  --step-3: clamp(1.75rem, 1.2rem + 2vw, 2.5rem);
+  --step-4: clamp(2.4rem, 1.4rem + 4.2vw, 4.75rem);
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4.5rem;
+
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-pill: 999px;
+
+  --shadow: 0 10px 30px -12px rgb(0 0 0 / 0.7);
+  --shadow-lift: 0 18px 40px -16px rgb(0 0 0 / 0.85);
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --fast: 160ms;
+  --slow: 700ms;
+
+  --container: 1240px;
+  --gutter: clamp(1rem, 4vw, 2.5rem);
+  --card-w: clamp(132px, 15vw, 184px);
+}

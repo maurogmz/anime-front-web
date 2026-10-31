@@ -1,69 +1,116 @@
-import { Navbar } from "../components/Navbar.js";
-import { SearchBar } from "../components/SearchBar.js";
-import { AnimeCard } from "../components/AnimeCard.js";
-import { Pagination } from "../components/Pagination.js";
-import jikan from "../services/jikanApi.js";
-import store from "../store/store.js";
-import { createElement } from "../utils/helpers.js";
+import { h, setTitle } from "../lib/dom.js";
+import { icon } from "../lib/icons.js";
+import { formatScore } from "../lib/format.js";
+import { href } from "../app/router.js";
+import { getSeasonNow, getTop } from "../api/jikan.js";
+import { MediaRail } from "../components/MediaRail.js";
+import { Poster } from "../components/MediaCard.js";
+import { FavoriteButton } from "../components/FavoriteButton.js";
+import { loadInto } from "../components/StatusView.js";
+
+// One request shared by the hero and the "this season" rail (deduped by the client anyway).
+const season = () => getSeasonNow({ limit: 16 });
+
+function Hero(media) {
+  const facts = ["Top rated this season", media.format, media.episodes && `${media.episodes} episodes`, media.studio].filter(Boolean);
+  return h(
+    "div",
+    { class: "hero__inner" },
+    media.image && h("img", { class: "hero__backdrop", src: media.image, alt: "", "aria-hidden": "true", referrerpolicy: "no-referrer" }),
+    h(
+      "a",
+      { class: "hero__poster", href: href(`/anime/${media.id}`), tabindex: "-1", "aria-hidden": "true" },
+      Poster(media, { eager: true }),
+    ),
+    h(
+      "div",
+      { class: "hero__copy" },
+      h("h1", { class: "hero__title" }, media.title),
+      h(
+        "p",
+        { class: "hero__facts" },
+        media.score != null && h("span", { class: "score score--lg" }, icon("star", { size: 18, filled: true }), formatScore(media.score)),
+        facts.join(" · "),
+      ),
+      media.synopsis && h("p", { class: "hero__synopsis" }, media.synopsis),
+      h(
+        "div",
+        { class: "actions" },
+        h("a", { class: "button button--accent", href: href(`/anime/${media.id}`) }, "View details"),
+        FavoriteButton(media, { variant: "label" }),
+      ),
+    ),
+  );
+}
+
+function QuickSearch() {
+  const input = h("input", {
+    type: "search",
+    name: "q",
+    placeholder: "Search a title, like Frieren or Berserk",
+    autocomplete: "off",
+    maxlength: "100",
+    "aria-label": "Title",
+  });
+  const kind = h(
+    "select",
+    { name: "kind", "aria-label": "Search in" },
+    h("option", { value: "anime" }, "Anime"),
+    h("option", { value: "manga" }, "Manga"),
+  );
+  return h(
+    "form",
+    {
+      class: "quick-search",
+      role: "search",
+      onSubmit: (e) => {
+        e.preventDefault();
+        const q = input.value.trim().slice(0, 100);
+        location.hash = `/browse/${kind.value}${q ? `?q=${encodeURIComponent(q)}` : ""}`;
+      },
+    },
+    h(
+      "div",
+      { class: "search" },
+      kind,
+      input,
+      h("button", { type: "submit", class: "button button--accent" }, icon("search", { size: 18 }), "Search"),
+    ),
+  );
+}
 
 export function HomePage() {
-  const root = createElement("div",{class:"app-container content"});
-  const nav = Navbar();
-  const search = SearchBar({ onSearch: handleSearch });
-  const results = createElement("div",{class:"grid"});
-  const bottom = createElement("div",{});
+  setTitle("");
+  const hero = h("section", { class: "hero", "aria-label": "Featured" });
 
-  let currentPage = 1;
-  let lastPage = 1;
-  let currentQuery = "";
+  loadInto(hero, {
+    load: season,
+    skeleton: () => h("div", { class: "hero__inner hero__inner--loading", "aria-hidden": "true" }, h("div", { class: "poster skeleton" })),
+    render: ({ items }) => {
+      const featured = [...items].filter((m) => m.image).sort((a, b) => (b.score ?? 0) - (a.score ?? 0))[0];
+      return featured ? Hero({ ...featured, studio: featured.creators[0]?.name }) : h("h1", {}, "Anime Hub");
+    },
+  });
 
-  async function handleSearch(q){
-    if (!q || !q.trim()) return;
-    currentQuery = q.trim();
-    currentPage = 1;
-    await loadResults();
-  }
-
-  async function loadResults(){
-    results.innerHTML = "";
-    for (let i=0;i<6;i++) {
-      const sk = createElement("div",{class:"skeleton"}, []);
-      sk.style.height = "320px";
-      results.appendChild(sk);
-    }
-    try {
-      const res = await jikan.searchAnime(currentQuery, currentPage, 24);
-      results.innerHTML = "";
-      const arr = res.data || [];
-      lastPage = res.pagination?.last_visible_page ?? 1;
-      if (arr.length === 0) {
-        results.appendChild(createElement("div",{},["No se encontraron resultados."]));
-      } else {
-        arr.forEach(a => results.appendChild(AnimeCard(a)));
-      }
-      bottom.innerHTML = "";
-      bottom.appendChild(Pagination({ page: currentPage, last: lastPage, onChange: async (p) => {
-        currentPage = p; await loadResults();
-      }}));
-    } catch (e) {
-      results.innerHTML = "";
-      results.appendChild(createElement("div",{},["Error al cargar resultados: " + e.message]));
-    }
-  }
-
-  (async function init() {
-    const wrapper = createElement("div",{},[]);
-    wrapper.append(createElement("h2",{},["Tendencias"]));
-    const topGrid = createElement("div",{class:"grid"});
-    try {
-      const res = await jikan.getTop("anime",1);
-      (res.data || []).slice(0,12).forEach(a => topGrid.appendChild(AnimeCard(a)));
-    } catch(e){
-      topGrid.appendChild(createElement("div",{},["No se pudieron cargar tendencias."]));
-    }
-    wrapper.appendChild(topGrid);
-    root.append(nav, search, wrapper, createElement("h3",{},["Resultados"]), results, bottom);
-  })();
-
-  return root;
+  return h(
+    "div",
+    { class: "page page--home" },
+    hero,
+    h(
+      "div",
+      { class: "container stack" },
+      QuickSearch(),
+      MediaRail({ title: "Airing this season", moreHref: href("/browse/anime?status=airing"), load: async () => (await season()).items }),
+      MediaRail({
+        title: "Top anime of all time",
+        moreHref: href("/browse/anime?sort=score"),
+        load: async () => (await getTop("anime")).items,
+      }),
+      MediaRail({
+        title: "Top manga of all time",
+        moreHref: href("/browse/manga?sort=score"),
+        load: async () => (await getTop("manga")).items,
+      }),
+    ),
+  );
 }

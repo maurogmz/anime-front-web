@@ -1,58 +1,141 @@
-import { Navbar } from "../components/Navbar.js";
-import jikan from "../services/jikanApi.js";
-import { createElement } from "../utils/helpers.js";
-import { AnimeCard } from "../components/AnimeCard.js";
-import { Modal } from "../components/Modal.js";
+import { h, setTitle } from "../lib/dom.js";
+import { icon } from "../lib/icons.js";
+import { formatScore, formatNumber, formatRank, formatCompact } from "../lib/format.js";
+import { href } from "../app/router.js";
+import { CATALOG } from "../config/catalog.js";
+import { getMedia, getRecommendations } from "../api/jikan.js";
+import { Poster } from "../components/MediaCard.js";
+import { FavoriteButton } from "../components/FavoriteButton.js";
+import { MediaRail } from "../components/MediaRail.js";
+import { loadInto } from "../components/StatusView.js";
 
-export function DetailPage() {
-  const root = createElement("div",{class:"app-container content"});
-  root.appendChild(Navbar());
-  const container = createElement("div",{});
-  root.append(container);
+function facts(m) {
+  const anime = m.kind === "anime";
+  return [
+    ["Format", m.format],
+    [anime ? "Episodes" : "Chapters", formatNumber(anime ? m.episodes : m.chapters)],
+    !anime && ["Volumes", formatNumber(m.volumes)],
+    ["Status", m.status],
+    [anime ? "Aired" : "Published", m.period],
+    anime && ["Duration", m.duration],
+    [anime ? "Studios" : "Authors", m.creators.map((c) => c.name).join(", ")],
+    anime && ["Rating", m.rating],
+  ].filter((row) => row && row[1] && row[1] !== "–");
+}
 
-  const path = window.location.pathname;
-  const idMatch = path.match(/\/anime\/(\d+)/);
-  const id = idMatch ? idMatch[1] : null;
-  if (!id) {
-    container.appendChild(createElement("h2",{},["Id de anime inválido"]));
-    return root;
-  }
+function Stats(m) {
+  const stat = (label, value, extra) => h("div", { class: "stat" }, h("dt", {}, label), h("dd", {}, value, extra));
+  return h(
+    "dl",
+    { class: "stats" },
+    stat("Score", formatScore(m.score), m.scoredBy != null && h("span", { class: "stat__note" }, `${formatCompact(m.scoredBy)} votes`)),
+    stat("Ranked", formatRank(m.rank)),
+    stat("Popularity", formatRank(m.popularity)),
+    stat("Members", formatCompact(m.members)),
+  );
+}
 
-  const loading = createElement("div",{},["Cargando..."]);
-  container.appendChild(loading);
+function Detail(m) {
+  setTitle(m.title);
+  const external = (url, label, name) =>
+    url &&
+    h("a", { class: "button button--ghost", href: url, target: "_blank", rel: "noopener noreferrer" }, icon(name, { size: 18 }), label);
 
-  (async function load() {
-    try {
-      const res = await jikan.getAnime(id);
-      const data = res.data;
+  return h(
+    "article",
+    { class: "detail" },
+    h(
+      "header",
+      { class: "detail__hero" },
+      m.image && h("img", { class: "hero__backdrop", src: m.image, alt: "", "aria-hidden": "true", referrerpolicy: "no-referrer" }),
+      h(
+        "div",
+        { class: "container detail__hero-inner" },
+        h("div", { class: "detail__poster" }, Poster(m, { eager: true })),
+        h(
+          "div",
+          { class: "detail__heading" },
+          h("h1", { class: "detail__title", tabindex: "-1" }, m.title),
+          (m.altTitle || m.titleJapanese) &&
+            h("p", { class: "detail__alt", lang: "ja" }, [m.altTitle, m.titleJapanese].filter(Boolean).join(" · ")),
+          Stats(m),
+          h(
+            "div",
+            { class: "actions" },
+            FavoriteButton(m, { variant: "label" }),
+            external(m.trailerUrl, "Watch trailer", "play"),
+            external(m.url, "MyAnimeList", "external"),
+          ),
+        ),
+      ),
+    ),
+    h(
+      "div",
+      { class: "container detail__body" },
+      h(
+        "section",
+        { class: "detail__synopsis", "aria-labelledby": "synopsis-title" },
+        h("h2", { id: "synopsis-title" }, "Synopsis"),
+        m.synopsis ? m.synopsis.split(/\n\s*\n/).map((p) => h("p", {}, p)) : h("p", { class: "muted" }, "No synopsis yet."),
+        m.genres.length > 0 &&
+          h(
+            "ul",
+            { class: "tags", "aria-label": "Genres and themes" },
+            m.genres.map((g) => h("li", {}, h("a", { class: "tag", href: href(`/browse/${m.kind}?genre=${g.id}`) }, g.name))),
+          ),
+      ),
+      h(
+        "aside",
+        { class: "detail__facts", "aria-label": "Details" },
+        h(
+          "dl",
+          {},
+          facts(m).map(([k, v]) => [h("dt", {}, k), h("dd", {}, v)]),
+        ),
+      ),
+    ),
+    h(
+      "div",
+      { class: "container" },
+      MediaRail({
+        title: "If you liked this",
+        load: async () =>
+          (await getRecommendations(m.kind, m.id)).slice(0, 15).map((r) => ({ ...r, kind: m.kind, format: "", year: null, score: null })),
+        cardOptions: { showFavorite: false },
+      }),
+    ),
+  );
+}
 
-      container.innerHTML = "";
-      const header = createElement("div",{class:"row"},[]);
-      const poster = createElement("img",{src: data.images.jpg.large_image_url, alt:data.title});
-      poster.style.width = "220px"; poster.style.borderRadius = "10px";
-      const meta = createElement("div",{style:"padding-left:12px;max-width:700px;"},[]);
-      meta.appendChild(createElement("h2",{},[data.title]));
-      meta.appendChild(createElement("div",{class:"muted"},[data.title_english || ""]));
-      meta.appendChild(createElement("p",{},[data.synopsis ?? "Sin sinopsis"]));
-      header.append(poster, meta);
+export function DetailPage({ kind, id }) {
+  setTitle(CATALOG[kind].label);
+  const root = h("div", { class: "page" });
 
-      const recTitle = createElement("h3",{},["Recomendaciones"]);
-      const recGrid = createElement("div",{class:"grid"});
-      try {
-        const rec = await jikan.getRecommendations(id);
-        (rec.data || []).slice(0,8).forEach(r => {
-          recGrid.appendChild(AnimeCard({ mal_id: r.entry.mal_id, title: r.entry.title, images: { jpg: { large_image_url: r.entry.images?.jpg?.large_image_url || "/assets/img/placeholder.png" } }, score: "N/A" }));
-        });
-      } catch(e){
-        recGrid.appendChild(createElement("div",{},["No hay recomendaciones disponibles."]));
-      }
+  loadInto(root, {
+    load: () => getMedia(kind, id),
+    skeleton: () =>
+      h(
+        "div",
+        { class: "container detail__hero-inner", "aria-hidden": "true" },
+        h("div", { class: "detail__poster" }, h("div", { class: "poster skeleton" })),
+        h(
+          "div",
+          { class: "detail__heading" },
+          h("div", { class: "skeleton skeleton--title" }),
+          h("div", { class: "skeleton skeleton--line" }),
+        ),
+      ),
+    render: Detail,
+  });
 
-      container.append(header, recTitle, recGrid);
-    } catch (e) {
-      container.innerHTML = "";
-      container.appendChild(createElement("div",{},["Error al cargar anime: " + e.message]));
-    }
-  })();
-
-  return root;
+  return h(
+    "div",
+    {},
+    h(
+      "div",
+      { class: "container back" },
+      h("a", { class: "link", href: href(`/browse/${kind}`) }, icon("arrowLeft", { size: 16 }), `All ${CATALOG[kind].label.toLowerCase()}`),
+    ),
+    root,
+  );
 }

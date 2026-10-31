@@ -1,100 +1,113 @@
 
-# 🎌 Anime & Manga Explorer v1.0
+# 🎌 Anime Hub v2.0
 
 <div align="center">
 
-![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)
 ![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/JavaScript-323330?style=for-the-badge&logo=javascript&logoColor=F7DF1E)
 ![Jikan API](https://img.shields.io/badge/API-Jikan%20v4-ff69b4?style=for-the-badge&logo=graphql&logoColor=white)
 
-[![Version](https://img.shields.io/badge/Version-1.0-brightgreen?style=flat-square)](https://github.com/maurogmz/anime-front-web)
+[![Version](https://img.shields.io/badge/Version-2.0.0-brightgreen?style=flat-square)](https://github.com/maurogmz/anime-front-web)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
 [![Stars](https://img.shields.io/github/stars/maurogmz/anime-front-web?style=flat-square&color=yellow)](https://github.com/maurogmz/anime-front-web/stargazers)
 [![Forks](https://img.shields.io/github/forks/maurogmz/anime-front-web?style=flat-square&color=orange)](https://github.com/maurogmz/anime-front-web/network)
 
 </div>
 
-A simple **prototype project (v1.0)** built with **JavaScript, HTML, and CSS** to test the [Jikan API v4](https://docs.api.jikan.moe/).  
-It allows searching for **anime** and **manga** and displays basic details such as images, titles, episodes/volumes, publishing date, and scores.  
+Browse and search **anime and manga** with data from the [Jikan API v4](https://docs.api.jikan.moe/) (unofficial MyAnimeList API).
 
-⚠️ **Disclaimer:** This is an early prototype ? Many improvements are still pending.  
+**Live site:** https://maurogmz.github.io/anime-front-web/
 
 ---
 
 ## ✨ Features
-- 🔎 Search for **anime** and **manga** using the Jikan API.  
-- 🎴 Display results in styled **cards**, including:
-  - 📷 Official image  
-  - 🏷️ Title  
-  - 🎬 Type (TV, Manga, OVA, etc.)  
-  - 📅 Release date (?)  
-  - ⭐ MyAnimeList score (?)  
+- 📺 **Home**: featured top-rated show of the season, plus rails for airing anime, top anime and top manga.
+- 🔎 **Browse** anime or manga by title, with format, status, genre and sort filters. Filters live in the URL, so results can be shared and the back button works.
+- 📄 **Detail page**: score, rank, popularity, synopsis, genres, studios/authors, trailer and recommendations.
+- ❤️ **Favorites**, saved in the browser (localStorage).
+- ♿ Keyboard and screen-reader friendly: skip link, focus management, labelled controls, reduced-motion support.
 
 ---
-
 
 ## 🛠️ Tech Stack
-
-<div align="center">
-
-![Tech Stack](https://skillicons.dev/icons?i=html,css,js,git,github&theme=dark)
-
-</div>
-
-- **Frontend**: HTML5, CSS3, JavaScript (ES6+)
-- **API**: Jikan API v4 (MyAnimeList unofficial API)
-- **Styling**: Custom CSS with modern design principles
-- **Version Control**: Git & GitHub
+- **Vanilla JavaScript (ES modules)**, no framework, built with **Vite**.
+- **Vitest + jsdom** for unit tests.
+- Self-hosted variable fonts (Fraunces, Instrument Sans) via Fontsource.
+- Deployed to **GitHub Pages** with `gh-pages`.
 
 ---
 
-
-## 🔗 API Reference
-
-This project uses the [Jikan API v4](https://docs.api.jikan.moe/), which provides:
-
-- 📺 **Anime Data**: Titles, descriptions, ratings, episodes, and more
-- 📚 **Manga Data**: Chapters, volumes, publication info, and more
-- 🎭 **Character Info**: Voice actors, descriptions, and relationships
-- 🏢 **Studio Info**: Animation studios and producers
-
-### Example API Call
-```javascript
-// Get anime information
-const response = await fetch('https://api.jikan.moe/v4/anime/1');
-const data = await response.json();
+## 🗂️ Project Structure
 ```
+src/
+├── main.js              # Entry: app shell + router wiring
+├── app/router.js        # Hash router (works on GitHub Pages without 404s)
+├── api/
+│   ├── httpClient.js    # Rate limiting, retries, cache, request dedup
+│   ├── jikan.js         # Facade: the only module that knows Jikan endpoints
+│   └── mappers.js       # Adapter: raw API JSON → app Media model
+├── config/catalog.js    # Filter options + URL param whitelisting
+├── state/favorites.js   # Observer store persisted in localStorage
+├── lib/                 # dom (safe element factory), icons, format, url
+├── components/          # Header, MediaCard, MediaRail, FilterBar, Pagination, StatusView…
+├── pages/               # Home, Browse, Detail, Favorites, NotFound
+└── styles/              # tokens → base → components → pages
+```
+
+**Design patterns:** Facade (`jikan.js`), Adapter (`mappers.js`), Observer (`favorites.js`), Factory (component functions, `createHttpClient`), Proxy-style cache in front of `fetch`.
+
+---
+
+## 🔌 Working with the Jikan API
+Jikan allows **3 requests/second and 60/minute**. The client (`src/api/httpClient.js`):
+- throttles requests client-side (one every 400 ms, max 55/min);
+- retries `429` and `5xx` with exponential backoff and honors `Retry-After`;
+- fails fast on timeouts (Jikan has outages) and shows a retry button;
+- caches responses in memory and `sessionStorage` (10 min for searches, 1 h for details/top, 24 h for genres);
+- deduplicates identical in-flight requests.
+
+Searches always send `sfw=true` and `limit=24` (the API max is 25).
+
+---
+
+## 🔒 Security
+- No `innerHTML` with data: every node is built with `document.createElement` and text nodes.
+- Every API and localStorage URL is validated (`https:` only) before it reaches `src`/`href`.
+- URL query params are whitelisted before they reach the API.
+- Stored favorites are re-validated on load.
+- A Content-Security-Policy `<meta>` tag is injected at build time. It allows only this site's own scripts, styles and fonts, Jikan for requests, and the MyAnimeList CDN for images.
+- External links use `rel="noopener noreferrer"`.
 
 ---
 
 ## 🚀 Getting Started
-1. Clone or download the repository.  
-2. Open `index.html` in your favorite browser (Chrome, Firefox, Edge).  
-3. Enter a search term (e.g., `Mob 100`).  
-4. Explore anime and manga results instantly. 🌟  
+```bash
+npm install
+npm run dev       # http://localhost:5173/anime-front-web/
+npm test          # unit tests
+npm run build     # production build in dist/
+npm run deploy    # tests + build + publish dist/ to the gh-pages branch
+```
 
 ---
 
-## 📌 Roadmap / To-Do
-- 🎨 Enhance UI/UX with a CSS framework (Tailwind / Bootstrap).  
-- 📑 Add a detailed view for each anime/manga.  
-- 🔄 Implement pagination for results.  
-- 🚫 Better error handling (e.g., empty searches, no results).  
-- 🕹️ Store recent searches.  
-- ⚡ Future migration to a modern JavaScript framework (React / Vue).  
+## 🌿 Git Workflow (git flow)
+- `master`: production releases (tagged, deployed to GitHub Pages).
+- `develop`: integration branch.
+- `feature/*` → `develop`, `release/x.y.z` → `master` + `develop`, `hotfix/*` → `master` + `develop`.
 
 ---
 
 ## 📝 Version
-- **v1.0** → Initial working prototype with basic search features.  
-- **2026-10-31** → Migrated to Vite with a modular structure and GitHub Pages deploy.  
+- **v2.0.0**: redesign, manga support, filters, favorites, resilient Jikan client, security hardening, tests.
+- **v1.0**: initial prototype with basic search.
 
 ---
 
 ## 📜 License
-This project is open for **learning and experimentation**.  
-Feel free to use, modify, and improve it.  
+This project is open for **learning and experimentation**.
+Feel free to use, modify, and improve it.
 
 ---
 ## 📞 Contact & Support
@@ -111,14 +124,3 @@ Feel free to use, modify, and improve it.
 *If you found this project helpful, please consider giving it a ⭐*
 
 </div>
-
-
-<div align="center" style="background-color:lightblue">
-	<h1>2020 v1</h1>
-	<img src="gif.gif">
-</div>
-
-
-
-
-
