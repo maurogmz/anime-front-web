@@ -1,7 +1,7 @@
 import { h } from "../lib/dom.js";
 import { icon } from "../lib/icons.js";
 import { CATALOG, SORTS } from "../config/catalog.js";
-import { getGenres } from "../api/jikan.js";
+import { getGenres } from "../api/anilist.js";
 
 function Select({ name, label, value, options, placeholder }) {
   const select = h(
@@ -40,9 +40,9 @@ export function FilterBar({ kind, filters, onChange }) {
     options: Object.entries(SORTS).map(([k, s]) => [k, s.label]),
   });
 
-  getGenres(kind)
+  getGenres()
     .then((list) => {
-      genre.select.append(...list.map((g) => h("option", { value: String(g.id), selected: String(g.id) === filters.genre }, g.name)));
+      genre.select.append(...list.map((g) => h("option", { value: g, selected: g === filters.genre }, g)));
     })
     .catch(() => {
       genre.select.disabled = true;

@@ -61,8 +61,8 @@ export function Footer() {
         "p",
         {},
         "Data from ",
-        h("a", { class: "link", href: "https://jikan.moe", rel: "noopener noreferrer", target: "_blank" }, "Jikan"),
-        ", the unofficial MyAnimeList API. Anime Hub is not affiliated with MyAnimeList.",
+        h("a", { class: "link", href: "https://anilist.co", rel: "noopener noreferrer", target: "_blank" }, "AniList"),
+        ". Anime Hub is not affiliated with AniList.",
       ),
     ),
   );

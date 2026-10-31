@@ -2,7 +2,7 @@ import { h, setTitle } from "../lib/dom.js";
 import { formatNumber } from "../lib/format.js";
 import { href, pushQuery } from "../app/router.js";
 import { CATALOG, sanitizeBrowseParams, browseQuery } from "../config/catalog.js";
-import { searchMedia } from "../api/jikan.js";
+import { searchMedia } from "../api/anilist.js";
 import { FilterBar } from "../components/FilterBar.js";
 import { MediaCard } from "../components/MediaCard.js";
 import { Pagination } from "../components/Pagination.js";

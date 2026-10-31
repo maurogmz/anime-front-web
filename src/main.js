@@ -10,6 +10,8 @@ import { BrowsePage } from "./pages/BrowsePage.js";
 import { DetailPage } from "./pages/DetailPage.js";
 import { FavoritesPage } from "./pages/FavoritesPage.js";
 import { NotFoundPage } from "./pages/NotFoundPage.js";
+import { favorites } from "./state/favorites.js";
+import { getAnimeByMalIds } from "./api/anilist.js";
 
 const header = Header();
 const main = h("main", { id: "main", tabindex: "-1" });
@@ -45,3 +47,6 @@ startRouter({
     (main.querySelector("h1[tabindex]") ?? main).focus({ preventScroll: true });
   },
 });
+
+// v1 favorites used MyAnimeList ids; map them to AniList once. On failure the legacy data stays for the next visit.
+favorites.migrateLegacy(getAnimeByMalIds).catch(() => {});

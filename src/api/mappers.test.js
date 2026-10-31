@@ -1,62 +1,102 @@
 import { describe, it, expect } from "vitest";
-import { toMedia, toRecommendation, uniqueById } from "./mappers.js";
+import { toMedia, htmlToText, uniqueById } from "./mappers.js";
 
 const raw = {
-  mal_id: 5114,
-  title: "Hagane no Renkinjutsushi: Fullmetal Alchemist",
-  title_english: "Fullmetal Alchemist: Brotherhood",
-  title_japanese: "鋼の錬金術師",
-  images: {
-    webp: { large_image_url: "https://cdn.myanimelist.net/a.webp" },
-    jpg: { large_image_url: "https://cdn.myanimelist.net/a.jpg" },
+  id: 154587,
+  type: "ANIME",
+  title: { romaji: "Sousou no Frieren", english: "Frieren: Beyond Journey's End", native: "葬送のフリーレン" },
+  coverImage: { extraLarge: "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx154587.jpg", color: "#d6e4a1" },
+  bannerImage: "https://s4.anilist.co/file/anilistcdn/media/anime/banner/154587.jpg",
+  format: "TV",
+  status: "FINISHED",
+  averageScore: 91,
+  episodes: 28,
+  duration: 24,
+  seasonYear: 2023,
+  startDate: { year: 2023, month: 9, day: 29 },
+  endDate: { year: 2024, month: 3, day: 22 },
+  description: "<i>Frieren</i> is an elf.<br><br>\nShe outlives&nbsp;her party. <script>alert(1)</script>(Source: Crunchyroll)",
+  genres: ["Adventure", "Drama", "Fantasy"],
+  rankings: [
+    { rank: 1, type: "RATED", allTime: true },
+    { rank: 3, type: "RATED", allTime: false },
+    { rank: 40, type: "POPULAR", allTime: true },
+  ],
+  trailer: { id: "qgQkeKz7YOw", site: "youtube" },
+  studios: { nodes: [{ name: "Madhouse" }] },
+  siteUrl: "https://anilist.co/anime/154587",
+  recommendations: {
+    nodes: [{ mediaRecommendation: { id: 1, type: "ANIME", title: { romaji: "Mushishi" } } }, { mediaRecommendation: null }],
   },
-  type: "TV",
-  score: 9.1,
-  episodes: 64,
-  aired: { from: "2009-04-05T00:00:00+00:00", string: "Apr 5, 2009 to Jul 4, 2010" },
-  synopsis: "Two brothers.\n\n[Written by MAL Rewrite]",
-  genres: [{ mal_id: 1, name: "Action" }],
-  themes: [{ mal_id: 38, name: "Military" }],
-  studios: [{ mal_id: 4, name: "Bones" }],
-  trailer: { url: "javascript:alert(1)" },
-  url: "https://myanimelist.net/anime/5114",
 };
 
 describe("toMedia", () => {
-  it("maps anime fields to the app shape", () => {
-    const m = toMedia(raw, "anime");
+  it("maps AniList fields to the app shape", () => {
+    const m = toMedia(raw);
     expect(m).toMatchObject({
-      id: 5114,
+      id: 154587,
       kind: "anime",
-      title: "Fullmetal Alchemist: Brotherhood",
-      altTitle: "Hagane no Renkinjutsushi: Fullmetal Alchemist",
-      image: "https://cdn.myanimelist.net/a.webp",
-      year: 2009,
-      episodes: 64,
-      synopsis: "Two brothers.",
-      creators: [{ id: 4, name: "Bones" }],
+      title: "Frieren: Beyond Journey's End",
+      altTitle: "Sousou no Frieren",
+      titleNative: "葬送のフリーレン",
+      format: "TV",
+      status: "Finished",
+      score: 91,
+      rank: 1,
+      popularityRank: 40,
+      year: 2023,
+      duration: "24 min per ep",
+      period: "Sep 29, 2023 to Mar 22, 2024",
+      creators: ["Madhouse"],
+      trailerUrl: "https://www.youtube.com/watch?v=qgQkeKz7YOw",
+      color: "#d6e4a1",
     });
-    expect(m.genres.map((g) => g.name)).toEqual(["Action", "Military"]);
+    expect(m.recommendations.map((r) => r.title)).toEqual(["Mushishi"]);
   });
 
-  it("drops unsafe URLs", () => {
-    expect(toMedia(raw, "anime").trailerUrl).toBe("");
-    expect(toMedia({ ...raw, images: { jpg: { large_image_url: "http://x/a.jpg" } } }, "anime").image).toBe("");
+  it("drops unsafe URLs and bad trailer ids", () => {
+    const m = toMedia({
+      ...raw,
+      coverImage: { extraLarge: "javascript:alert(1)" },
+      bannerImage: "http://x/b.jpg",
+      trailer: { id: "x/../evil", site: "youtube" },
+    });
+    expect(m.image).toBe("");
+    expect(m.banner).toBe("");
+    expect(m.trailerUrl).toBe("");
   });
 
-  it("uses authors for manga and survives missing fields", () => {
-    const m = toMedia({ mal_id: 2, title: "Berserk", authors: [{ mal_id: 1868, name: "Miura, Kentarou" }] }, "manga");
-    expect(m.creators[0].name).toBe("Miura, Kentarou");
+  it("keeps only creative staff as manga authors", () => {
+    const m = toMedia({
+      id: 30002,
+      type: "MANGA",
+      title: { romaji: "Berserk" },
+      status: "RELEASING",
+      staff: {
+        edges: [
+          { role: "Story & Art (vols 1-41)", node: { name: { full: "Kentarou Miura" } } },
+          { role: "Translator (Portuguese)", node: { name: { full: "Someone" } } },
+        ],
+      },
+    });
+    expect(m.kind).toBe("manga");
+    expect(m.status).toBe("Publishing");
+    expect(m.creators).toEqual(["Kentarou Miura"]);
     expect(m.score).toBeNull();
-    expect(m.genres).toEqual([]);
   });
 });
 
-describe("helpers", () => {
-  it("toRecommendation reads the nested entry", () => {
-    expect(toRecommendation({ entry: { mal_id: 1, title: "X" }, votes: 3 })).toMatchObject({ id: 1, title: "X", votes: 3 });
+describe("htmlToText", () => {
+  it("keeps text, paragraph breaks and entities; drops tags and source credit", () => {
+    expect(htmlToText(raw.description)).toBe("Frieren is an elf.\n\nShe outlives her party. alert(1)");
   });
-  it("uniqueById removes duplicates and invalid ids", () => {
+  it("handles empty input", () => {
+    expect(htmlToText(null)).toBe("");
+  });
+});
+
+describe("uniqueById", () => {
+  it("removes duplicates and invalid ids", () => {
     expect(uniqueById([{ id: 1 }, { id: 1 }, { id: 2 }, { id: undefined }]).map((x) => x.id)).toEqual([1, 2]);
   });
 });

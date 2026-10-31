@@ -3,7 +3,7 @@ import { icon } from "../lib/icons.js";
 import { formatScore, formatNumber, formatRank, formatCompact } from "../lib/format.js";
 import { href } from "../app/router.js";
 import { CATALOG } from "../config/catalog.js";
-import { getMedia, getRecommendations } from "../api/jikan.js";
+import { getMedia } from "../api/anilist.js";
 import { Poster } from "../components/MediaCard.js";
 import { FavoriteButton } from "../components/FavoriteButton.js";
 import { MediaRail } from "../components/MediaRail.js";
@@ -18,8 +18,7 @@ function facts(m) {
     ["Status", m.status],
     [anime ? "Aired" : "Published", m.period],
     anime && ["Duration", m.duration],
-    [anime ? "Studios" : "Authors", m.creators.map((c) => c.name).join(", ")],
-    anime && ["Rating", m.rating],
+    [anime ? "Studios" : "Authors", m.creators.join(", ")],
   ].filter((row) => row && row[1] && row[1] !== "–");
 }
 
@@ -28,10 +27,10 @@ function Stats(m) {
   return h(
     "dl",
     { class: "stats" },
-    stat("Score", formatScore(m.score), m.scoredBy != null && h("span", { class: "stat__note" }, `${formatCompact(m.scoredBy)} votes`)),
+    stat("Score", formatScore(m.score)),
     stat("Ranked", formatRank(m.rank)),
-    stat("Popularity", formatRank(m.popularity)),
-    stat("Members", formatCompact(m.members)),
+    stat("Popularity", formatRank(m.popularityRank)),
+    stat("Fans", formatCompact(m.favourites)),
   );
 }
 
@@ -47,7 +46,14 @@ function Detail(m) {
     h(
       "header",
       { class: "detail__hero" },
-      m.image && h("img", { class: "hero__backdrop", src: m.image, alt: "", "aria-hidden": "true", referrerpolicy: "no-referrer" }),
+      (m.banner || m.image) &&
+        h("img", {
+          class: m.banner ? "hero__backdrop hero__backdrop--banner" : "hero__backdrop",
+          src: m.banner || m.image,
+          alt: "",
+          "aria-hidden": "true",
+          referrerpolicy: "no-referrer",
+        }),
       h(
         "div",
         { class: "container detail__hero-inner" },
@@ -56,15 +62,14 @@ function Detail(m) {
           "div",
           { class: "detail__heading" },
           h("h1", { class: "detail__title", tabindex: "-1" }, m.title),
-          (m.altTitle || m.titleJapanese) &&
-            h("p", { class: "detail__alt", lang: "ja" }, [m.altTitle, m.titleJapanese].filter(Boolean).join(" · ")),
+          (m.altTitle || m.titleNative) && h("p", { class: "detail__alt" }, [m.altTitle, m.titleNative].filter(Boolean).join(" · ")),
           Stats(m),
           h(
             "div",
             { class: "actions" },
             FavoriteButton(m, { variant: "label" }),
             external(m.trailerUrl, "Watch trailer", "play"),
-            external(m.url, "MyAnimeList", "external"),
+            external(m.url, "AniList", "external"),
           ),
         ),
       ),
@@ -80,8 +85,8 @@ function Detail(m) {
         m.genres.length > 0 &&
           h(
             "ul",
-            { class: "tags", "aria-label": "Genres and themes" },
-            m.genres.map((g) => h("li", {}, h("a", { class: "tag", href: href(`/browse/${m.kind}?genre=${g.id}`) }, g.name))),
+            { class: "tags", "aria-label": "Genres" },
+            m.genres.map((g) => h("li", {}, h("a", { class: "tag", href: href(`/browse/${m.kind}?genre=${encodeURIComponent(g)}`) }, g))),
           ),
       ),
       h(
@@ -94,16 +99,8 @@ function Detail(m) {
         ),
       ),
     ),
-    h(
-      "div",
-      { class: "container" },
-      MediaRail({
-        title: "If you liked this",
-        load: async () =>
-          (await getRecommendations(m.kind, m.id)).slice(0, 15).map((r) => ({ ...r, kind: m.kind, format: "", year: null, score: null })),
-        cardOptions: { showFavorite: false },
-      }),
-    ),
+    m.recommendations.length > 0 &&
+      h("div", { class: "container" }, MediaRail({ title: "If you liked this", load: async () => m.recommendations })),
   );
 }
 

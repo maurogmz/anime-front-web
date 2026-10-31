@@ -1,9 +1,10 @@
 /**
- * HTTP client tuned for Jikan v4 (https://docs.api.jikan.moe/):
- * - Rate limit: 3 requests/second and 60 requests/minute per IP → client-side throttle.
- * - 429 / 5xx → retry with exponential backoff (honors Retry-After).
- * - Jikan already caches upstream for 24h, so a client cache with TTL is safe and saves quota.
- * - Identical in-flight requests are deduplicated.
+ * HTTP client tuned for the AniList GraphQL API (https://docs.anilist.co/guide/rate-limiting):
+ * - Rate limit: 90 req/min nominal, currently degraded to 30 req/min → client-side throttle.
+ * - 429 / 5xx → retry with backoff. Browsers cannot read Retry-After (not CORS-exposed),
+ *   so the wait comes from X-RateLimit-Reset (unix seconds) when present.
+ * - Timeouts fail fast: an API that does not answer will not answer on retry either.
+ * - Responses are cached with a TTL and identical in-flight requests are deduplicated.
  *
  * Built as a factory so tests can inject fetch, clock, sleep and storage.
  */
@@ -23,7 +24,7 @@ const MESSAGES = {
   429: "Too many requests to the anime database. Wait a few seconds and retry.",
   500: "The anime database is having trouble. Try again in a moment.",
 };
-const messageFor = (status) => MESSAGES[status] ?? MESSAGES[status >= 500 ? 500 : 0];
+export const messageFor = (status) => MESSAGES[status] ?? MESSAGES[status >= 500 ? 500 : 0];
 
 const realSleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -40,12 +41,12 @@ export function createHttpClient({
   sleep = realSleep,
   now = () => Date.now(),
   storage = defaultStorage(),
-  minIntervalMs = 400,
-  perMinute = 55,
+  minIntervalMs = 250,
+  perMinute = 28,
   timeoutMs = 10000,
   maxRetries = 2,
   defaultTtlMs = 10 * 60 * 1000,
-  storagePrefix = "jikan:",
+  storagePrefix = "anilist:",
 } = {}) {
   const memory = new Map();
   const inflight = new Map();
@@ -102,17 +103,27 @@ export function createHttpClient({
 
   const backoff = (attempt) => 1000 * 2 ** attempt;
 
-  async function fetchWithRetry(url) {
+  function retryDelay(res, attempt) {
+    const header = (name) => Number(res.headers?.get?.(name));
+    const retryAfter = header("Retry-After") * 1000;
+    if (retryAfter > 0) return retryAfter;
+    const untilReset = header("X-RateLimit-Reset") * 1000 - now();
+    if (untilReset > 0 && untilReset <= 60_000) return untilReset;
+    return backoff(attempt);
+  }
+
+  async function fetchWithRetry(url, body) {
     for (let attempt = 0; ; attempt++) {
       await takeSlot();
       let res;
       try {
         res = await fetchImpl(url, {
-          headers: { Accept: "application/json" },
+          method: body ? "POST" : "GET",
+          headers: body ? { Accept: "application/json", "Content-Type": "application/json" } : { Accept: "application/json" },
+          body,
           signal: AbortSignal.timeout(timeoutMs),
         });
       } catch (err) {
-        // A timeout means the API is down or overloaded: fail fast and let the user retry.
         const timedOut = err?.name === "TimeoutError";
         if (!timedOut && attempt < maxRetries) {
           await sleep(backoff(attempt));
@@ -125,28 +136,29 @@ export function createHttpClient({
 
       const retryable = res.status === 429 || res.status >= 500;
       if (retryable && attempt < maxRetries) {
-        const retryAfter = Number(res.headers?.get?.("Retry-After")) * 1000;
-        await sleep(retryAfter > 0 ? retryAfter : backoff(attempt));
+        await sleep(retryDelay(res, attempt));
         continue;
       }
       throw new HttpError(res.status, messageFor(res.status));
     }
   }
 
-  async function getJson(url, { ttlMs = defaultTtlMs } = {}) {
-    const cached = readCache(url);
+  /** GET when `body` is omitted, POST with a JSON string body otherwise. */
+  async function requestJson(url, { body, ttlMs = defaultTtlMs } = {}) {
+    const key = body ? `${url}#${body}` : url;
+    const cached = readCache(key);
     if (cached !== undefined) return cached;
-    if (inflight.has(url)) return inflight.get(url);
+    if (inflight.has(key)) return inflight.get(key);
 
-    const request = fetchWithRetry(url)
+    const request = fetchWithRetry(url, body)
       .then((data) => {
-        writeCache(url, data, ttlMs);
+        writeCache(key, data, ttlMs);
         return data;
       })
-      .finally(() => inflight.delete(url));
-    inflight.set(url, request);
+      .finally(() => inflight.delete(key));
+    inflight.set(key, request);
     return request;
   }
 
-  return { getJson };
+  return { requestJson };
 }

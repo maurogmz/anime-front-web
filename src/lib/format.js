@@ -1,7 +1,8 @@
 const compact = new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 });
 const whole = new Intl.NumberFormat("en");
 
-export const formatScore = (score) => (typeof score === "number" ? score.toFixed(2) : "–");
+// AniList scores are 0–100; shown as a percentage like on AniList itself.
+export const formatScore = (score) => (typeof score === "number" ? `${score}%` : "–");
 export const formatCompact = (n) => (typeof n === "number" ? compact.format(n) : "–");
 export const formatNumber = (n) => (typeof n === "number" ? whole.format(n) : "–");
 export const formatRank = (n) => (typeof n === "number" ? `#${whole.format(n)}` : "–");

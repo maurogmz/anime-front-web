@@ -17,6 +17,14 @@
   opacity: 0.32;
   mask-image: linear-gradient(to bottom, #000 40%, transparent);
 }
+/* Wide banner art reads at a lighter blur; the cover fallback needs the heavy one. */
+.hero__backdrop--banner {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  filter: blur(6px) saturate(1.2);
+  opacity: 0.4;
+}
 
 /* ---------- Home hero (the one authored motion moment) ---------- */
 .hero__inner {

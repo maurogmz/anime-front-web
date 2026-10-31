@@ -11,7 +11,7 @@ function memoryStorage(initial = {}) {
   };
 }
 
-const media = { id: 1, kind: "anime", title: "Cowboy Bebop", image: "https://cdn.myanimelist.net/x.jpg", score: 8.75, year: 1998 };
+const media = { id: 1, kind: "anime", title: "Cowboy Bebop", image: "https://s4.anilist.co/x.jpg", score: 8.75, year: 1998 };
 
 describe("favorites store", () => {
   it("toggles, notifies and persists", () => {
@@ -46,14 +46,25 @@ describe("favorites store", () => {
     expect(createFavoritesStore(memoryStorage({ "animehub:favorites:v2": "{oops" })).size).toBe(0);
   });
 
-  it("migrates v1 favorites", () => {
+  it("migrates v1 favorites by MAL id and only then drops the legacy key", async () => {
     const v1 = JSON.stringify([
-      [20, { mal_id: 20, title: "Naruto", images: { jpg: { large_image_url: "https://cdn.myanimelist.net/n.jpg" } }, score: 8 }],
+      [20, { mal_id: 20, title: "Naruto" }],
+      [5114, { mal_id: 5114 }],
     ]);
     const storage = memoryStorage({ anime_favs_v1: v1 });
     const store = createFavoritesStore(storage);
+    const resolve = vi.fn(async () => [{ id: 20, kind: "anime", title: "Naruto", image: "https://s4.anilist.co/n.jpg", score: 80 }]);
+
+    expect(await store.migrateLegacy(resolve)).toBe(1);
+    expect(resolve).toHaveBeenCalledWith([20, 5114]);
     expect(store.has("anime", 20)).toBe(true);
     expect(storage.data.anime_favs_v1).toBeUndefined();
-    expect(storage.data["animehub:favorites:v2"]).toContain("Naruto");
+  });
+
+  it("keeps v1 favorites when the lookup fails", async () => {
+    const storage = memoryStorage({ anime_favs_v1: JSON.stringify([[20, {}]]) });
+    const store = createFavoritesStore(storage);
+    await expect(store.migrateLegacy(async () => Promise.reject(new Error("down")))).rejects.toThrow("down");
+    expect(storage.data.anime_favs_v1).toBeDefined();
   });
 });

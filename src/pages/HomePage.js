@@ -2,21 +2,28 @@ import { h, setTitle } from "../lib/dom.js";
 import { icon } from "../lib/icons.js";
 import { formatScore } from "../lib/format.js";
 import { href } from "../app/router.js";
-import { getSeasonNow, getTop } from "../api/jikan.js";
+import { getHome } from "../api/anilist.js";
 import { MediaRail } from "../components/MediaRail.js";
 import { Poster } from "../components/MediaCard.js";
 import { FavoriteButton } from "../components/FavoriteButton.js";
 import { loadInto } from "../components/StatusView.js";
 
-// One request shared by the hero and the "this season" rail (deduped by the client anyway).
-const season = () => getSeasonNow({ limit: 16 });
+// One GraphQL request feeds the hero and all three rails (the client dedupes and caches it).
+const home = () => getHome();
 
 function Hero(media) {
   const facts = ["Top rated this season", media.format, media.episodes && `${media.episodes} episodes`, media.studio].filter(Boolean);
   return h(
     "div",
     { class: "hero__inner" },
-    media.image && h("img", { class: "hero__backdrop", src: media.image, alt: "", "aria-hidden": "true", referrerpolicy: "no-referrer" }),
+    (media.banner || media.image) &&
+      h("img", {
+        class: media.banner ? "hero__backdrop hero__backdrop--banner" : "hero__backdrop",
+        src: media.banner || media.image,
+        alt: "",
+        "aria-hidden": "true",
+        referrerpolicy: "no-referrer",
+      }),
     h(
       "a",
       { class: "hero__poster", href: href(`/anime/${media.id}`), tabindex: "-1", "aria-hidden": "true" },
@@ -84,11 +91,11 @@ export function HomePage() {
   const hero = h("section", { class: "hero", "aria-label": "Featured" });
 
   loadInto(hero, {
-    load: season,
+    load: home,
     skeleton: () => h("div", { class: "hero__inner hero__inner--loading", "aria-hidden": "true" }, h("div", { class: "poster skeleton" })),
-    render: ({ items }) => {
-      const featured = [...items].filter((m) => m.image).sort((a, b) => (b.score ?? 0) - (a.score ?? 0))[0];
-      return featured ? Hero({ ...featured, studio: featured.creators[0]?.name }) : h("h1", {}, "Anime Hub");
+    render: ({ season }) => {
+      const featured = season.filter((m) => m.image).sort((a, b) => (b.score ?? 0) - (a.score ?? 0))[0];
+      return featured ? Hero({ ...featured, studio: featured.creators[0] }) : h("h1", { class: "container page-title" }, "Anime Hub");
     },
   });
 
@@ -100,16 +107,16 @@ export function HomePage() {
       "div",
       { class: "container stack" },
       QuickSearch(),
-      MediaRail({ title: "Airing this season", moreHref: href("/browse/anime?status=airing"), load: async () => (await season()).items }),
+      MediaRail({ title: "Airing this season", moreHref: href("/browse/anime?status=RELEASING"), load: async () => (await home()).season }),
       MediaRail({
         title: "Top anime of all time",
         moreHref: href("/browse/anime?sort=score"),
-        load: async () => (await getTop("anime")).items,
+        load: async () => (await home()).topAnime,
       }),
       MediaRail({
         title: "Top manga of all time",
         moreHref: href("/browse/manga?sort=score"),
-        load: async () => (await getTop("manga")).items,
+        load: async () => (await home()).topManga,
       }),
     ),
   );

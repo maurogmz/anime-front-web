@@ -4,7 +4,8 @@ import { MEDIA_KINDS } from "../config/catalog.js";
 import { safeUrl } from "../lib/url.js";
 
 const KEY = "animehub:favorites:v2";
-const LEGACY_KEY = "anime_favs_v1"; // v1 format: [[mal_id, { mal_id, title, images, score }]]
+// v1 (Jikan era) format: [[mal_id, { mal_id, ... }]]. Ids are MyAnimeList ids, not AniList ids.
+const LEGACY_KEY = "anime_favs_v1";
 const MAX_ITEMS = 500;
 
 const keyOf = (kind, id) => `${kind}:${id}`;
@@ -23,16 +24,6 @@ function normalize(item) {
   };
 }
 
-function migrateLegacy(raw) {
-  return JSON.parse(raw).map(([, v]) => ({
-    id: v?.mal_id,
-    kind: "anime",
-    title: v?.title,
-    image: v?.images?.jpg?.large_image_url,
-    score: v?.score,
-  }));
-}
-
 function safeStorage() {
   try {
     return globalThis.localStorage ?? null;
@@ -47,17 +38,11 @@ export function createFavoritesStore(storage = safeStorage()) {
 
   function load() {
     try {
-      const raw = storage?.getItem(KEY);
-      const legacy = raw ? null : storage?.getItem(LEGACY_KEY);
-      const list = raw ? JSON.parse(raw) : legacy ? migrateLegacy(legacy) : [];
+      const list = JSON.parse(storage?.getItem(KEY) ?? "[]");
       if (!Array.isArray(list)) return;
       for (const entry of list.slice(0, MAX_ITEMS)) {
         const item = normalize(entry);
         if (item) items.set(keyOf(item.kind, item.id), item);
-      }
-      if (legacy) {
-        persist();
-        storage.removeItem(LEGACY_KEY);
       }
     } catch {
       // corrupt storage: start empty rather than crash
@@ -87,6 +72,30 @@ export function createFavoritesStore(storage = safeStorage()) {
     list: () => [...items.values()].reverse(), // newest first
     get size() {
       return items.size;
+    },
+    /**
+     * Imports v1 favorites. `resolve(malIds)` returns AniList media; the legacy key is
+     * removed only after a successful import, so a failed request loses nothing.
+     */
+    async migrateLegacy(resolve) {
+      let malIds;
+      try {
+        const legacy = JSON.parse(storage?.getItem(LEGACY_KEY) ?? "null");
+        if (!Array.isArray(legacy)) return 0;
+        malIds = legacy.map((entry) => Number(entry?.[0])).filter((id) => Number.isInteger(id) && id > 0);
+      } catch {
+        storage?.removeItem(LEGACY_KEY); // unreadable: nothing to recover
+        return 0;
+      }
+      const found = malIds.length ? await resolve(malIds) : [];
+      for (const media of found) {
+        const item = normalize(media);
+        if (item && items.size < MAX_ITEMS) items.set(keyOf(item.kind, item.id), item);
+      }
+      persist();
+      storage?.removeItem(LEGACY_KEY);
+      if (found.length) notify();
+      return found.length;
     },
     toggle(media) {
       const key = keyOf(media.kind, media.id);
